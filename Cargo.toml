@@ -1,0 +1,16 @@
+[package]
+name = "layerzero_dropin"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+ethers = { version = "2.0", features = ["rustls", "ws"] }
+eyre = "0.6.8"
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+hex = "0.4.3"
+cita_trie = { path = "../cita-trie" }
+hasher = "0.1.4"
+rlp = "0.5"
+hex-literal = "0.4.1"
