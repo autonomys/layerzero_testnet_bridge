@@ -2,7 +2,7 @@ extern crate core;
 
 use cita_trie::MemoryDB;
 use cita_trie::{PatriciaTrie, Trie};
-use ethers::abi::{AbiEncode, Token, Uint};
+use ethers::abi::{Token, Uint};
 use ethers::contract::abigen;
 use ethers::core::types::Address;
 use ethers::core::types::Filter;
@@ -12,9 +12,11 @@ use ethers::signers::Signer;
 use ethers::types::{BlockNumber, Bytes, H160, H256, U256};
 use ethers::utils::keccak256;
 use eyre::Result;
-use hasher::{Hasher, HasherKeccak};
+use hasher::HasherKeccak;
 use std::cmp::min;
-use std::str::FromStr;
+use std::fmt;
+use std::fmt::Formatter;
+
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::time::sleep;
@@ -63,7 +65,6 @@ fn generate_rlp_path(rlp_encoded_key: &Vec<u8>) -> Vec<u8> {
     hex_data
 }
 
-#[derive(Debug)]
 struct PacketData {
     size: u64,
     nonce: u64,
@@ -72,6 +73,22 @@ struct PacketData {
     dst_chain_id: u16,
     dst_address: Address,
     payload: Vec<u8>,
+}
+
+impl fmt::Display for PacketData {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        writeln!(f)?;
+        writeln!(f, "{{")?;
+        writeln!(f, "\tsize: {}", self.size)?;
+        writeln!(f, "\tnonce: {}", self.nonce)?;
+        writeln!(f, "\tsource chain id: {}", self.src_chain_id)?;
+        writeln!(f, "\tsource address: {}", self.src_address)?;
+        writeln!(f, "\tDestination chain id: {}", self.dst_chain_id)?;
+        writeln!(f, "\tDestination address: {}", self.dst_address)?;
+        writeln!(f, "\tPayload (hex-encoded): {}", hex::encode(&self.payload))?;
+        writeln!(f, "}}")?;
+        Ok(())
+    }
 }
 
 impl PacketData {
@@ -187,7 +204,7 @@ async fn main() -> Result<()> {
                 .from_block(current_range.0)
                 .to_block(current_range.1);
 
-            let mut logs = src_client.get_logs(&filter).await?;
+            let logs = src_client.get_logs(&filter).await?;
             if logs.len() == 0 {
                 println!("No logs in range: {:?}", current_range);
             } else {
@@ -206,7 +223,7 @@ async fn main() -> Result<()> {
                         continue;
                     }
                     println!(
-                        "*********Found Packet intended for our destination. {:?}",
+                        "*********Found Packet intended for our destination. {}",
                         packet_data
                     );
                     let encoded_address_pair = ethers::abi::encode_packed(&[
