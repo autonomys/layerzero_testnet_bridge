@@ -1182,18 +1182,6 @@ async fn destination_tx_task(
 ) -> Result<()> {
     while let Some((source_chain_id, source_block_number, payload)) = proof_receiver.recv().await {
         println!("DEBUG: Sending tx to destination");
-        // let update_hash_tx_receipt = dest
-        //     .update_hash(
-        //         source_chain_id,
-        //         payload.block_hash.0,
-        //         payload.confirmations,
-        //         payload.receipts_root.0,
-        //     )
-        //     .await?
-        //     .ok_or(Report::msg(format!(
-        //         "unable to call update_hash for payload: {:?}",
-        //         payload
-        //     )))?;
         let update_hash_tx_receipt = dest
             .update_hash(
                 source_chain_id,
@@ -1201,9 +1189,11 @@ async fn destination_tx_task(
                 payload.confirmations,
                 payload.receipts_root.0,
             )
-            .await
-            .unwrap()
-            .unwrap();
+            .await?
+            .ok_or(Report::msg(format!(
+                "unable to call update_hash for payload: {:?}",
+                payload
+            )))?;
         println!(
             "Tx sent as oracle for chain_id: {} and address: {}, receipt: {:?}",
             dest.layerzero_chain_id(),
